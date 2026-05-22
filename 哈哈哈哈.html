@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>貓蟲家族｜一番賞APP版</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:"Microsoft JhengHei";
+}
+
+body{
+    background:linear-gradient(135deg,#dff7ff,#ffffff);
+    height:100vh;
+    overflow:hidden;
+}
+
+/* ================= APP UI LAYER ================= */
+#app{
+    position:relative;
+    width:100%;
+    height:100vh;
+}
+
+/* ================= TOP INFO ================= */
+#topBar{
+    position:fixed;
+    top:15px;
+    right:15px;
+    background:#ffffffdd;
+    padding:10px 16px;
+    border-radius:16px;
+    font-weight:bold;
+    z-index:5000;
+}
+
+/* ================= BUTTONS ================= */
+.btn{
+    position:fixed;
+    left:15px;
+    padding:10px 14px;
+    border:none;
+    border-radius:12px;
+    cursor:pointer;
+    z-index:5000;
+}
+
+#btnSettings{ top:15px; background:#333; color:white; }
+#btnReset{ top:65px; background:#ff3b3b; color:white; }
+
+/* ================= GAME AREA ================= */
+#stage{
+    width:100%;
+    height:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+#box{
+    width:360px;
+    height:360px;
+    background:#5fd0ff;
+    border-radius:24px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:40px;
+    color:white;
+    font-weight:bold;
+    box-shadow:0 20px 40px rgba(0,0,0,0.2);
+    cursor:pointer;
+}
+
+/* shake */
+.shake{
+    animation:shake 0.4s;
+}
+@keyframes shake{
+    0%{transform:rotate(0);}
+    25%{transform:rotate(2deg);}
+    50%{transform:rotate(-2deg);}
+    75%{transform:rotate(2deg);}
+    100%{transform:rotate(0);}
+}
+
+/* ================= TICKET ================= */
+#ticket{
+    position:fixed;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%) scale(0);
+    width:240px;
+    height:420px;
+    opacity:0;
+    z-index:6000;
+    transition:.4s;
+}
+
+#ticket.show{
+    transform:translate(-50%,-50%) scale(1);
+    opacity:1;
+}
+
+.ticketHalf{
+    width:100%;
+    height:50%;
+    position:absolute;
+    background:#fff3c9;
+    border:2px dashed #999;
+}
+
+#topHalf{
+    top:0;
+    transform-origin:bottom;
+    transition:.5s;
+}
+
+#bottomHalf{
+    bottom:0;
+}
+
+#result{
+    text-align:center;
+    font-size:36px;
+    margin-top:140px;
+    opacity:0;
+    transition:.3s;
+}
+
+#topHalf.open{
+    transform:rotateX(-160deg);
+}
+
+/* ================= PANEL ================= */
+#panelMask{
+    position:fixed;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.4);
+    display:none;
+    z-index:8000;
+}
+
+#panel{
+    position:fixed;
+    left:0;
+    top:0;
+    width:340px;
+    height:100%;
+    background:#fff;
+    transform:translateX(-100%);
+    transition:.3s;
+    z-index:9000;
+    padding:16px;
+    overflow:auto;
+}
+
+#panel.open{
+    transform:translateX(0);
+}
+
+#panelMask.show{
+    display:block;
+}
+
+/* reward */
+.row{
+    display:flex;
+    gap:6px;
+    margin-bottom:8px;
+}
+
+.row input{
+    flex:1;
+}
+
+.del{
+    width:40px;
+    background:red;
+    color:white;
+    border:none;
+    border-radius:8px;
+}
+
+/* buttons */
+.panelBtn{
+    width:100%;
+    margin-top:10px;
+    padding:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="app">
+
+<div id="topBar">
+總數：<span id="total">0</span>
+｜剩餘：<span id="remain">0</span>
+</div>
+
+<button id="btnSettings" class="btn">設定</button>
+<button id="btnReset" class="btn">重置</button>
+
+<div id="stage">
+    <div id="box">貓蟲家族</div>
+</div>
+
+<div id="ticket">
+    <div id="topHalf" class="ticketHalf"></div>
+    <div id="bottomHalf" class="ticketHalf">
+        <div id="result"></div>
+    </div>
+</div>
+
+<!-- PANEL -->
+<div id="panelMask"></div>
+
+<div id="panel">
+<h3>設定</h3>
+
+<div id="list"></div>
+
+<button id="add">＋新增</button>
+<button id="save" class="panelBtn">儲存</button>
+<button id="close" class="panelBtn">返回</button>
+</div>
+
+</div>
+
+<script>
+
+let pool=[];
+let remain=[];
+let lock=false;
+let open=false;
+
+/* ================= LOAD ================= */
+function load(){
+    const data=JSON.parse(localStorage.getItem("lottery_app")||"null");
+
+    if(data){
+        pool=data.pool;
+        remain=data.remain;
+    }else{
+        pool=["A賞","B賞","C賞","銘謝惠顧","銘謝惠顧"];
+        remain=[...pool];
+    }
+
+    updateUI();
+}
+load();
+
+/* ================= UI ================= */
+function updateUI(){
+    document.getElementById("total").innerText=pool.length;
+    document.getElementById("remain").innerText=remain.length;
+}
+
+/* ================= DRAW ================= */
+document.getElementById("box").onclick=()=>{
+
+    if(lock||remain.length===0)return;
+
+    lock=true;
+
+    const box=document.getElementById("box");
+    box.classList.add("shake");
+
+    setTimeout(()=>box.classList.remove("shake"),400);
+
+    const i=Math.floor(Math.random()*remain.length);
+    const pick=remain.splice(i,1)[0];
+
+    save();
+
+    setTimeout(()=>{
+
+        document.getElementById("ticket").classList.add("show");
+        document.getElementById("result").style.opacity=0;
+        document.getElementById("result").innerText=pick;
+
+        lock=false;
+
+    },500);
+};
+
+/* ================= OPEN ================= */
+document.getElementById("topHalf").onclick=(e)=>{
+
+    e.stopPropagation();
+    if(open)return;
+
+    open=true;
+    document.getElementById("topHalf").classList.add("open");
+
+    setTimeout(()=>{
+        document.getElementById("result").style.opacity=1;
+    },500);
+};
+
+/* ================= CLOSE ================= */
+document.body.addEventListener("click",(e)=>{
+
+    if(e.target.closest("#panel"))return;
+    if(e.target.closest("#btnSettings"))return;
+
+    if(!open)return;
+
+    document.getElementById("ticket").classList.remove("show");
+    document.getElementById("topHalf").classList.remove("open");
+
+    open=false;
+});
+
+/* ================= SETTINGS ================= */
+const mask=document.getElementById("panelMask");
+const panel=document.getElementById("panel");
+
+document.getElementById("btnSettings").onclick=(e)=>{
+    e.stopPropagation();
+    panel.classList.add("open");
+    mask.classList.add("show");
+};
+
+mask.onclick=()=>{
+    panel.classList.remove("open");
+    mask.classList.remove("show");
+};
+
+document.getElementById("close").onclick=()=>{
+    panel.classList.remove("open");
+    mask.classList.remove("show");
+};
+
+/* ================= ADD ================= */
+document.getElementById("add").onclick=()=>{
+    const div=document.createElement("div");
+    div.className="row";
+    div.innerHTML=`
+        <input placeholder="文字">
+        <input type="number" placeholder="數量">
+        <button class="del">-</button>
+    `;
+    document.getElementById("list").appendChild(div);
+};
+
+/* delete */
+document.addEventListener("click",(e)=>{
+    if(e.target.classList.contains("del")){
+        e.target.parentElement.remove();
+    }
+});
+
+/* ================= SAVE ================= */
+document.getElementById("save").onclick=()=>{
+
+    let arr=[];
+
+    document.querySelectorAll(".row").forEach(r=>{
+        const text=r.children[0].value;
+        const count=parseInt(r.children[1].value||0);
+
+        for(let i=0;i<count;i++){
+            arr.push(text);
+        }
+    });
+
+    pool=[...arr];
+    remain=[...arr];
+
+    save();
+    updateUI();
+
+    alert("已儲存");
+};
+
+/* ================= RESET ================= */
+document.getElementById("btnReset").onclick=()=>{
+    remain=[...pool];
+    save();
+    updateUI();
+};
+
+/* ================= STORAGE ================= */
+function save(){
+    localStorage.setItem("lottery_app",JSON.stringify({
+        pool,
+        remain
+    }));
+}
+
+</script>
+
+</body>
+</html>
