@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>貓蟲家族 一番賞抽籤</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:"Microsoft JhengHei",sans-serif;
+}
+
+body{
+    background:linear-gradient(to bottom,#dff7ff,#ffffff);
+    overflow:hidden;
+    height:100vh;
+}
+
+#topInfo{
+    position:fixed;
+    top:20px;
+    right:20px;
+    background:rgba(255,255,255,0.85);
+    padding:12px 20px;
+    border-radius:20px;
+    font-size:20px;
+    font-weight:bold;
+    z-index:20;
+    box-shadow:0 5px 15px rgba(0,0,0,0.15);
+}
+
+#scene{
+    width:100%;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    position:relative;
+}
+
+/* ================= 紙盒 ================= */
+
+#boxWrap{
+    position:relative;
+    width:360px;
+    height:360px;
+    cursor:pointer;
+    user-select:none;
+}
+
+#lotteryBox{
+    width:100%;
+    height:100%;
+    background:#76d9ff;
+    border-radius:20px;
+    position:absolute;
+    bottom:0;
+    transform-style:preserve-3d;
+    box-shadow:
+        0 25px 40px rgba(0,0,0,0.25),
+        inset 0 -15px 0 rgba(0,0,0,0.1);
+    transition:0.2s;
+    overflow:hidden;
+}
+
+#boxFront{
+    position:absolute;
+    width:100%;
+    height:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:42px;
+    font-weight:bold;
+    color:white;
+    text-shadow:0 3px 5px rgba(0,0,0,0.3);
+    z-index:2;
+}
+
+#boxTop{
+    position:absolute;
+    width:300px;
+    height:50px;
+    background:#9be6ff;
+    left:30px;
+    top:-20px;
+    border-radius:15px;
+    transform:rotateX(60deg);
+}
+
+/* 籤紙裝飾 */
+
+.paperDecor{
+    position:absolute;
+    width:24px;
+    height:120px;
+    background:white;
+    border-radius:5px;
+    top:-60px;
+    box-shadow:0 3px 6px rgba(0,0,0,0.2);
+}
+
+.paperDecor:nth-child(1){left:50px; transform:rotate(-10deg);}
+.paperDecor:nth-child(2){left:90px; transform:rotate(5deg);}
+.paperDecor:nth-child(3){left:130px; transform:rotate(-8deg);}
+.paperDecor:nth-child(4){left:170px; transform:rotate(6deg);}
+.paperDecor:nth-child(5){left:210px; transform:rotate(-5deg);}
+.paperDecor:nth-child(6){left:250px; transform:rotate(8deg);}
+
+/* 晃動 */
+
+.shake{
+    animation:shake 0.4s;
+}
+
+@keyframes shake{
+    0%{transform:rotate(0);}
+    25%{transform:rotate(2deg);}
+    50%{transform:rotate(-2deg);}
+    75%{transform:rotate(2deg);}
+    100%{transform:rotate(0);}
+}
+
+/* ================= 抽出籤紙 ================= */
+
+#ticket{
+    width:230px;
+    height:420px;
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%, -50%) scale(0);
+    z-index:50;
+    transition:0.6s;
+    pointer-events:none;
+}
+
+.ticketShow{
+    transform:translate(-50%, -50%) scale(1) !important;
+}
+
+.ticketPart{
+    width:100%;
+    height:50%;
+    background:#fff7d6;
+    border:3px dashed #999;
+    position:absolute;
+    left:0;
+    overflow:hidden;
+}
+
+.ticketTop{
+    top:0;
+    border-bottom:none;
+    border-radius:20px 20px 0 0;
+    transform-origin:bottom;
+    transition:0.8s;
+}
+
+.ticketBottom{
+    bottom:0;
+    border-radius:0 0 20px 20px;
+}
+
+#tearLine{
+    position:absolute;
+    top:50%;
+    left:0;
+    width:100%;
+    border-top:4px dashed #777;
+    z-index:3;
+}
+
+#openBtn{
+    position:absolute;
+    width:100%;
+    top:160px;
+    text-align:center;
+    font-size:24px;
+    font-weight:bold;
+    color:#555;
+}
+
+#resultText{
+    position:absolute;
+    width:100%;
+    top:250px;
+    text-align:center;
+    font-size:40px;
+    font-weight:bold;
+    color:#ff4f4f;
+    opacity:0;
+    transition:0.5s;
+}
+
+/* 撕開 */
+
+.opened{
+    transform:rotateX(-160deg);
+}
+
+/* 提示 */
+
+#hint{
+    position:fixed;
+    bottom:40px;
+    width:100%;
+    text-align:center;
+    font-size:22px;
+    color:#000;
+    opacity:0;
+    transition:0.5s;
+    z-index:100;
+}
+
+.hintShow{
+    opacity:0.5 !important;
+}
+
+/* 禮炮 */
+
+.confetti{
+    position:fixed;
+    width:12px;
+    height:12px;
+    top:-20px;
+    animation:fall linear forwards;
+    z-index:200;
+}
+
+@keyframes fall{
+    to{
+        transform:translateY(120vh) rotate(720deg);
+    }
+}
+
+/* ================= 設定面板 ================= */
+
+#settingsBtn{
+    position:fixed;
+    left:20px;
+    top:20px;
+    padding:12px 18px;
+    border:none;
+    border-radius:12px;
+    background:#333;
+    color:white;
+    font-size:18px;
+    cursor:pointer;
+    z-index:300;
+}
+
+#panel{
+    position:fixed;
+    left:0;
+    top:0;
+    width:360px;
+    height:100vh;
+    background:white;
+    padding:20px;
+    overflow:auto;
+    z-index:400;
+    transform:translateX(-100%);
+    transition:0.3s;
+    box-shadow:5px 0 25px rgba(0,0,0,0.2);
+}
+
+.panelShow{
+    transform:translateX(0) !important;
+}
+
+#panel h2{
+    margin-bottom:20px;
+}
+
+.settingGroup{
+    margin-bottom:20px;
+}
+
+.settingGroup label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:bold;
+}
+
+.settingGroup input,
+.settingGroup textarea{
+    width:100%;
+    padding:10px;
+    border-radius:10px;
+    border:1px solid #ccc;
+}
+
+.rewardRow{
+    display:flex;
+    gap:10px;
+    margin-bottom:10px;
+}
+
+.rewardRow input{
+    flex:1;
+}
+
+.addBtn{
+    width:100%;
+    padding:10px;
+    border:none;
+    background:#76d9ff;
+    border-radius:10px;
+    font-size:18px;
+    cursor:pointer;
+}
+
+.saveBtn{
+    width:100%;
+    padding:14px;
+    border:none;
+    background:#333;
+    color:white;
+    border-radius:15px;
+    font-size:20px;
+    cursor:pointer;
+}
+
+#resetMemory{
+    margin-top:10px;
+    background:red;
+    color:white;
+}
+
+.previewImg{
+    width:100%;
+    margin-top:10px;
+    border-radius:10px;
+    display:none;
+}
+</style>
+</head>
+
+<body>
+
+<button id="settingsBtn">⚙ 設定</button>
+
+<div id="topInfo">
+總數：<span id="totalCount">0</span>
+｜
+剩餘：<span id="remainCount">0</span>
+</div>
+
+<div id="scene">
+
+    <div id="boxWrap">
+
+        <div class="paperDecor"></div>
+        <div class="paperDecor"></div>
+        <div class="paperDecor"></div>
+        <div class="paperDecor"></div>
+        <div class="paperDecor"></div>
+        <div class="paperDecor"></div>
+
+        <div id="lotteryBox">
+            <div id="boxTop"></div>
+            <div id="boxFront">貓蟲家族</div>
+        </div>
+    </div>
+
+    <div id="ticket">
+        <div class="ticketPart ticketTop" id="ticketTop">
+            <div id="openBtn">點我撕開</div>
+        </div>
+
+        <div id="tearLine"></div>
+
+        <div class="ticketPart ticketBottom">
+            <div id="resultText"></div>
+        </div>
+    </div>
+
+</div>
+
+<div id="hint">
+點擊空白處離開
+</div>
+
+<!-- ================= 設定面板 ================= -->
+
+<div id="panel">
+
+    <h2>抽籤設定</h2>
+
+    <div class="settingGroup">
+        <label>籤紙總數</label>
+        <input type="number" id="ticketTotalInput" value="10">
+    </div>
+
+    <div class="settingGroup">
+        <label>紙盒顏色</label>
+        <input type="color" id="boxColor" value="#76d9ff">
+    </div>
+
+    <div class="settingGroup">
+        <label>籤紙顏色</label>
+        <input type="color" id="ticketColor" value="#fff7d6">
+    </div>
+
+    <div class="settingGroup">
+        <label>
+            <input type="checkbox" id="useColor" checked>
+            使用顏色模式
+        </label>
+
+        <label>
+            <input type="checkbox" id="useImage">
+            使用圖片模式
+        </label>
+    </div>
+
+    <div class="settingGroup">
+        <label>紙盒圖片</label>
+        <input type="file" id="boxImageInput">
+        <img id="boxPreview" class="previewImg">
+    </div>
+
+    <div class="settingGroup">
+        <label>籤紙圖片</label>
+        <input type="file" id="ticketImageInput">
+        <img id="ticketPreview" class="previewImg">
+    </div>
+
+    <div class="settingGroup">
+        <label>中獎內容設定</label>
+
+        <div id="rewardContainer"></div>
+
+        <button class="addBtn" id="addReward">
+            ＋新增中獎文字
+        </button>
+    </div>
+
+    <button class="saveBtn" id="saveSetting">
+        儲存設定
+    </button>
+
+    <button class="saveBtn" id="resetMemory">
+        清除記憶
+    </button>
+
+</div>
+
+<script>
+/* ================= 變數 ================= */
+
+const box = document.getElementById("lotteryBox");
+const boxWrap = document.getElementById("boxWrap");
+
+const ticket = document.getElementById("ticket");
+const ticketTop = document.getElementById("ticketTop");
+const resultText = document.getElementById("resultText");
+
+const hint = document.getElementById("hint");
+
+const totalCount = document.getElementById("totalCount");
+const remainCount = document.getElementById("remainCount");
+
+const settingsBtn = document.getElementById("settingsBtn");
+const panel = document.getElementById("panel");
+
+const rewardContainer = document.getElementById("rewardContainer");
+
+let drawing = false;
+let opened = false;
+
+let tickets = [];
+let remainTickets = [];
+
+/* ================= 載入記錄 ================= */
+
+loadData();
+
+function loadData(){
+
+    const save = localStorage.getItem("lotteryData");
+
+    if(save){
+        const data = JSON.parse(save);
+
+        tickets = data.tickets;
+        remainTickets = data.remainTickets;
+
+        applySavedStyle(data);
+
+        updateCount();
+    }else{
+        createDefault();
+    }
+}
+
+function createDefault(){
+
+    tickets = [
+        "A賞",
+        "B賞",
+        "銘謝惠顧",
+        "銘謝惠顧",
+        "銘謝惠顧",
+        "C賞",
+        "銘謝惠顧",
+        "D賞",
+        "銘謝惠顧",
+        "最後賞"
+    ];
+
+    remainTickets = [...tickets];
+
+    updateCount();
+}
+
+/* ================= 更新數量 ================= */
+
+function updateCount(){
+
+    totalCount.innerText = tickets.length;
+    remainCount.innerText = remainTickets.length;
+}
+
+/* ================= 抽獎 ================= */
+
+boxWrap.addEventListener("click",()=>{
+
+    if(drawing) return;
+    if(remainTickets.length <= 0){
+        alert("已抽完");
+        return;
+    }
+
+    drawing = true;
+
+    box.classList.add("shake");
+
+    setTimeout(()=>{
+        box.classList.remove("shake");
+    },400);
+
+    const randomIndex =
+        Math.floor(Math.random()*remainTickets.length);
+
+    const result = remainTickets[randomIndex];
+
+    remainTickets.splice(randomIndex,1);
+
+    saveLocal();
+
+    updateCount();
+
+    setTimeout(()=>{
+
+        ticket.classList.add("ticketShow");
+
+        resultText.innerText = result;
+
+        drawing = false;
+
+    },500);
+});
+
+/* ================= 撕開 ================= */
+
+ticketTop.addEventListener("click",(e)=>{
+
+    e.stopPropagation();
+
+    if(opened) return;
+
+    opened = true;
+
+    ticketTop.classList.add("opened");
+
+    setTimeout(()=>{
+
+        resultText.style.opacity = 1;
+
+        hint.classList.add("hintShow");
+
+        checkWin(resultText.innerText);
+
+    },600);
+});
+
+/* ================= 離開 ================= */
+
+document.body.addEventListener("click",(e)=>{
+
+    if(!opened) return;
+
+    if(e.target.id === "ticketTop") return;
+
+    ticket.classList.remove("ticketShow");
+
+    ticketTop.classList.remove("opened");
+
+    resultText.style.opacity = 0;
+
+    hint.classList.remove("hintShow");
+
+    opened = false;
+});
+
+/* ================= 禮炮 ================= */
+
+function checkWin(text){
+
+    const save = JSON.parse(localStorage.getItem("lotteryData"));
+
+    if(!save) return;
+
+    const wins = save.winTexts || [];
+
+    if(wins.includes(text)){
+
+        createConfetti();
+
+        setTimeout(()=>{
+            document.querySelectorAll(".confetti")
+            .forEach(el=>el.remove());
+        },3000);
+    }
+}
+
+function createConfetti(){
+
+    for(let i=0;i<120;i++){
+
+        const div = document.createElement("div");
+
+        div.className = "confetti";
+
+        div.style.left = Math.random()*100+"vw";
+
+        div.style.background =
+            `hsl(${Math.random()*360},100%,50%)`;
+
+        div.style.animationDuration =
+            (Math.random()*3+2)+"s";
+
+        document.body.appendChild(div);
+    }
+}
+
+/* ================= 設定面板 ================= */
+
+settingsBtn.onclick = ()=>{
+
+    panel.classList.toggle("panelShow");
+};
+
+/* ================= 新增中獎欄位 ================= */
+
+document.getElementById("addReward")
+.onclick = ()=>{
+
+    const row = document.createElement("div");
+
+    row.className = "rewardRow";
+
+    row.innerHTML = `
+        <input type="text" placeholder="文字">
+        <input type="number" placeholder="數量">
+    `;
+
+    rewardContainer.appendChild(row);
+};
+
+/* ================= 勾選互斥 ================= */
+
+const useColor = document.getElementById("useColor");
+const useImage = document.getElementById("useImage");
+
+useColor.onchange = ()=>{
+
+    if(useColor.checked){
+        useImage.checked = false;
+    }
+};
+
+useImage.onchange = ()=>{
+
+    if(useImage.checked){
+        useColor.checked = false;
+    }
+};
+
+/* ================= 圖片上傳 ================= */
+
+let boxImageData = "";
+let ticketImageData = "";
+
+document.getElementById("boxImageInput")
+.addEventListener("change",function(){
+
+    const file = this.files[0];
+
+    const reader = new FileReader();
+
+    reader.onload = e=>{
+
+        boxImageData = e.target.result;
+
+        document.getElementById("boxPreview").src =
+            boxImageData;
+
+        document.getElementById("boxPreview")
+            .style.display = "block";
+    };
+
+    reader.readAsDataURL(file);
+});
+
+document.getElementById("ticketImageInput")
+.addEventListener("change",function(){
+
+    const file = this.files[0];
+
+    const reader = new FileReader();
+
+    reader.onload = e=>{
+
+        ticketImageData = e.target.result;
+
+        document.getElementById("ticketPreview").src =
+            ticketImageData;
+
+        document.getElementById("ticketPreview")
+            .style.display = "block";
+    };
+
+    reader.readAsDataURL(file);
+});
+
+/* ================= 儲存設定 ================= */
+
+document.getElementById("saveSetting")
+.onclick = ()=>{
+
+    const total =
+        parseInt(
+            document.getElementById("ticketTotalInput").value
+        );
+
+    let newTickets = [];
+    let winTexts = [];
+
+    let totalAmount = 0;
+
+    const rows =
+        document.querySelectorAll(".rewardRow");
+
+    rows.forEach(row=>{
+
+        const text =
+            row.children[0].value.trim();
+
+        const amount =
+            parseInt(row.children[1].value);
+
+        if(text && amount){
+
+            totalAmount += amount;
+
+            winTexts.push(text);
+
+            for(let i=0;i<amount;i++){
+                newTickets.push(text);
+            }
+        }
+    });
+
+    if(totalAmount !== total){
+
+        alert("數量不符，無法設定");
+        return;
+    }
+
+    tickets = [...newTickets];
+    remainTickets = [...newTickets];
+
+    const data = {
+
+        tickets,
+        remainTickets,
+        winTexts,
+
+        boxColor:
+            document.getElementById("boxColor").value,
+
+        ticketColor:
+            document.getElementById("ticketColor").value,
+
+        useColor:useColor.checked,
+        useImage:useImage.checked,
+
+        boxImageData,
+        ticketImageData
+    };
+
+    localStorage.setItem(
+        "lotteryData",
+        JSON.stringify(data)
+    );
+
+    applySavedStyle(data);
+
+    updateCount();
+
+    alert("設定完成");
+};
+
+/* ================= 套用樣式 ================= */
+
+function applySavedStyle(data){
+
+    if(data.useColor){
+
+        box.style.background = data.boxColor;
+
+        document.querySelectorAll(".ticketPart")
+        .forEach(el=>{
+
+            el.style.background = data.ticketColor;
+        });
+    }
+
+    if(data.useImage){
+
+        if(data.boxImageData){
+
+            box.style.background =
+                `url(${data.boxImageData}) center/cover`;
+        }
+
+        if(data.ticketImageData){
+
+            document.querySelectorAll(".ticketPart")
+            .forEach(el=>{
+
+                el.style.background =
+                    `url(${data.ticketImageData}) center/cover`;
+            });
+        }
+    }
+}
+
+/* ================= 清除記憶 ================= */
+
+document.getElementById("resetMemory")
+.onclick = ()=>{
+
+    if(confirm("確定清除所有記錄？")){
+
+        localStorage.removeItem("lotteryData");
+
+        location.reload();
+    }
+};
+</script>
+
+</body>
+</html>
