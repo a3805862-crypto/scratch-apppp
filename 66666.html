@@ -1,0 +1,526 @@
+<!-- ================= 籤紙樣式升級版（直接覆蓋原本 ticket 區塊與 CSS） ================= -->
+
+<style>
+
+/* ================= 彈窗 ================= */
+
+#popup{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.45);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index:999;
+    backdrop-filter:blur(3px);
+}
+
+/* ================= 籤紙 ================= */
+
+#ticketWrap{
+    width:92%;
+    max-width:720px;
+    position:relative;
+}
+
+/* 整張票 */
+
+#ticket{
+
+    width:100%;
+    aspect-ratio:7/3;
+
+    position:relative;
+
+    border-radius:28px;
+
+    overflow:visible;
+}
+
+/* ================= 內層紙 ================= */
+
+#ticketBase{
+
+    position:absolute;
+    inset:0;
+
+    background:var(--innerColor,#dff3ff);
+
+    border:3px solid #111;
+
+    border-radius:28px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    font-size:58px;
+    font-weight:bold;
+    color:#111;
+
+    overflow:hidden;
+}
+
+/* 內層裝飾 */
+
+#ticketBase::before{
+
+    content:"";
+
+    position:absolute;
+
+    inset:12px;
+
+    border:2px dashed rgba(0,0,0,0.25);
+
+    border-radius:20px;
+}
+
+/* ================= 外層可撕紙 ================= */
+
+#ticketTop{
+
+    position:absolute;
+
+    width:93%;
+    height:80%;
+
+    left:3.5%;
+    top:10%;
+
+    background:var(--outerColor,#2f7ea7);
+
+    border:2px solid #111;
+
+    border-radius:22px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    color:white;
+    font-size:42px;
+    font-weight:bold;
+
+    cursor:pointer;
+
+    z-index:5;
+
+    overflow:hidden;
+
+    transition:
+        transform 0.9s cubic-bezier(.2,.9,.1,1),
+        opacity 0.6s;
+}
+
+/* 外層光澤 */
+
+#ticketTop::before{
+
+    content:"";
+
+    position:absolute;
+
+    left:-40%;
+    top:0;
+
+    width:40%;
+    height:100%;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(255,255,255,0.35),
+            transparent
+        );
+
+    transform:skewX(-20deg);
+
+    animation:shine 2.5s infinite;
+}
+
+@keyframes shine{
+
+    100%{
+        left:140%;
+    }
+}
+
+/* ================= 真實撕開 ================= */
+
+.opened{
+
+    animation:tearOpen 1s forwards;
+}
+
+@keyframes tearOpen{
+
+    0%{
+        transform:
+            rotate(0deg)
+            translate(0,0)
+            scale(1);
+    }
+
+    35%{
+
+        transform:
+            rotate(-8deg)
+            translate(-8%, -2%)
+            scale(1.01);
+    }
+
+    60%{
+
+        transform:
+            rotate(-18deg)
+            translate(-28%, -6%)
+            scale(1);
+    }
+
+    100%{
+
+        transform:
+            rotate(-32deg)
+            translate(-120%, -22%)
+            scale(0.92);
+
+        opacity:0;
+    }
+}
+
+/* 捲曲感 */
+
+.tearing{
+
+    box-shadow:
+        -25px 10px 20px rgba(0,0,0,0.22),
+        inset -10px 0 15px rgba(255,255,255,0.25);
+}
+
+/* ================= 確認按鈕 ================= */
+
+#confirmBtn{
+
+    width:100%;
+
+    margin-top:22px;
+
+    border:none;
+
+    background:#111;
+
+    color:white;
+
+    padding:18px;
+
+    border-radius:18px;
+
+    font-size:24px;
+
+    cursor:pointer;
+
+    transition:0.2s;
+}
+
+#confirmBtn:active{
+
+    transform:scale(0.98);
+}
+
+/* ================= 手機最佳化 ================= */
+
+@media(max-width:700px){
+
+    #ticketBase{
+
+        font-size:42px;
+    }
+
+    #ticketTop{
+
+        font-size:30px;
+    }
+}
+
+</style>
+
+<!-- ================= 設定頁新增（加在設定頁 block 裡面） ================= -->
+
+<div class="block">
+
+    <h3>籤紙顏色設定</h3>
+
+    <label style="margin-top:10px;display:block;">
+        外層可撕紙顏色
+    </label>
+
+    <input type="color"
+           id="outerColor"
+           value="#2f7ea7">
+
+    <label style="margin-top:20px;display:block;">
+        內層紙張顏色
+    </label>
+
+    <input type="color"
+           id="innerColor"
+           value="#dff3ff">
+
+</div>
+
+<script>
+
+/* ================= 顏色變數 ================= */
+
+document.documentElement.style.setProperty(
+    "--outerColor",
+    "#2f7ea7"
+);
+
+document.documentElement.style.setProperty(
+    "--innerColor",
+    "#dff3ff"
+);
+
+/* ================= 撕開動畫升級 ================= */
+
+const ticketTop =
+document.getElementById("ticketTop");
+
+let tearing = false;
+
+ticketTop.addEventListener("pointerdown",(e)=>{
+
+    if(tearing) return;
+
+    tearing = true;
+
+    /* 取得點擊位置 */
+
+    const rect =
+    ticketTop.getBoundingClientRect();
+
+    const x =
+    e.clientX - rect.left;
+
+    const y =
+    e.clientY - rect.top;
+
+    /* transform origin 改變 */
+
+    ticketTop.style.transformOrigin =
+        `${x}px ${y}px`;
+
+    /* 捲曲感 */
+
+    ticketTop.classList.add("tearing");
+
+    /* 撕開 */
+
+    ticketTop.classList.add("opened");
+
+    const data =
+    pages[currentPage];
+
+    /* 已抽紀錄 */
+
+    if(!data.opened.includes(currentNumber)){
+
+        data.opened.push(currentNumber);
+
+        saveData();
+
+        renderGrid();
+
+        if(data.rewards[currentNumber]){
+
+            confetti();
+        }
+    }
+});
+
+/* ================= 確認關閉 ================= */
+
+confirmBtn.onclick = ()=>{
+
+    popup.style.display = "none";
+
+    tearing = false;
+
+    ticketTop.classList.remove(
+        "opened",
+        "tearing"
+    );
+
+    ticketTop.style.opacity = 1;
+};
+
+/* ================= 開啟票券 ================= */
+
+function openTicket(num){
+
+    const data = pages[currentPage];
+
+    if(data.opened.includes(num)) return;
+
+    currentNumber = num;
+
+    popup.style.display = "flex";
+
+    ticketTop.classList.remove(
+        "opened",
+        "tearing"
+    );
+
+    ticketTop.style.opacity = 1;
+
+    ticketBase.innerText =
+        data.rewards[num] || "銘謝惠顧";
+}
+
+/* ================= 儲存設定升級 ================= */
+
+document.getElementById("saveSetting")
+.onclick = ()=>{
+
+    const total =
+    parseInt(
+        document.getElementById("totalInput")
+        .value
+    );
+
+    const rewards = {};
+
+    const rows =
+    document.querySelectorAll(".rewardRow");
+
+    rows.forEach(row=>{
+
+        const num =
+        parseInt(row.children[0].value);
+
+        const text =
+        row.children[1].value.trim();
+
+        if(num && text){
+
+            rewards[num] = text;
+        }
+    });
+
+    /* 顏色 */
+
+    const outerColor =
+    document.getElementById("outerColor")
+    .value;
+
+    const innerColor =
+    document.getElementById("innerColor")
+    .value;
+
+    pages[currentPage] = {
+
+        total,
+        rewards,
+        opened:[],
+
+        outerColor,
+        innerColor
+    };
+
+    /* 套用 */
+
+    document.documentElement.style.setProperty(
+        "--outerColor",
+        outerColor
+    );
+
+    document.documentElement.style.setProperty(
+        "--innerColor",
+        innerColor
+    );
+
+    saveData();
+
+    renderGrid();
+
+    settingPage.style.display = "none";
+};
+
+/* ================= 開啟設定同步顏色 ================= */
+
+function openSetting(){
+
+    const data = pages[currentPage];
+
+    document.getElementById("totalInput")
+    .value = data.total;
+
+    rewardContainer.innerHTML = "";
+
+    Object.keys(data.rewards)
+    .forEach(num=>{
+
+        createRewardRow(
+            num,
+            data.rewards[num]
+        );
+    });
+
+    /* 顏色同步 */
+
+    document.getElementById("outerColor")
+    .value =
+    data.outerColor || "#2f7ea7";
+
+    document.getElementById("innerColor")
+    .value =
+    data.innerColor || "#dff3ff";
+
+    settingPage.style.display = "block";
+}
+
+/* ================= 頁面切換同步顏色 ================= */
+
+function renderGrid(){
+
+    grid.innerHTML = "";
+
+    const data = pages[currentPage];
+
+    /* 顏色套用 */
+
+    document.documentElement.style.setProperty(
+        "--outerColor",
+        data.outerColor || "#2f7ea7"
+    );
+
+    document.documentElement.style.setProperty(
+        "--innerColor",
+        data.innerColor || "#dff3ff"
+    );
+
+    for(let i=1;i<=data.total;i++){
+
+        const card =
+        document.createElement("div");
+
+        card.className = "card";
+
+        if(data.opened.includes(i)){
+
+            card.classList.add("used");
+        }
+
+        card.innerText =
+        String(i).padStart(3,"0");
+
+        card.onclick = ()=>openTicket(i);
+
+        grid.appendChild(card);
+    }
+}
+
+  </script>
