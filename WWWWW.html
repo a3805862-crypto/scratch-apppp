@@ -1,0 +1,811 @@
+<!DOCTYPE html>  <html lang="zh-Hant">  
+<head>  
+<meta charset="UTF-8">  
+<meta name="viewport" content="width=device-width, initial-scale=1.0">  
+<title>貓蟲家族 一番賞</title>  <style>  
+  
+*{  
+    margin:0;  
+    padding:0;  
+    box-sizing:border-box;  
+    font-family:"Microsoft JhengHei",sans-serif;  
+}  
+  
+body{  
+    background:#ececec;  
+    overflow:hidden;  
+}  
+  
+/* ================= 頂部 ================= */  
+  
+.topBar{  
+    width:100%;  
+    height:75px;  
+    background:white;  
+    display:flex;  
+    align-items:center;  
+    justify-content:space-between;  
+    padding:0 18px;  
+    box-shadow:0 2px 10px rgba(0,0,0,0.08);  
+}  
+  
+.logo{  
+    font-size:26px;  
+    font-weight:bold;  
+    line-height:1.1;  
+}  
+  
+.topBtns{  
+    display:flex;  
+    gap:10px;  
+}  
+  
+.topBtn{  
+    width:62px;  
+    height:62px;  
+    border:none;  
+    border-radius:16px;  
+    background:#111;  
+    color:white;  
+    font-size:18px;  
+    cursor:pointer;  
+    line-height:1.2;  
+}  
+  
+/* ================= 主畫面 ================= */  
+  
+#main{  
+    width:100%;  
+    height:calc(100vh - 75px);  
+    overflow:auto;  
+    padding:20px;  
+}  
+  
+#grid{  
+    display:grid;  
+    grid-template-columns:repeat(4,1fr);  
+    gap:16px;  
+}  
+  
+/* ================= 號碼 ================= */  
+  
+.card{  
+    aspect-ratio:1/1;  
+    background:#111;  
+    border-radius:8px;  
+    display:flex;  
+    justify-content:center;  
+    align-items:center;  
+    color:white;  
+    font-size:40px;  
+    cursor:pointer;  
+    user-select:none;  
+    transition:0.2s;  
+}  
+  
+.card:hover{  
+    transform:scale(1.03);  
+}  
+  
+.used{  
+    background:#d9d9d9 !important;  
+    color:#f4f4f4 !important;  
+}  
+  
+/* ================= 彈窗 ================= */  
+  
+#popup{  
+    position:fixed;  
+    inset:0;  
+    background:rgba(0,0,0,0.45);  
+    display:none;  
+    justify-content:center;  
+    align-items:center;  
+    z-index:999;  
+}  
+  
+/* ================= 籤紙 ================= */  
+  
+#ticketWrap{  
+    width:92%;  
+    max-width:700px;  
+    position:relative;  
+}  
+  
+#ticket{  
+  
+    width:100%;  
+    height:260px;  
+    background:#dff3ff;  
+    border:3px solid #111;  
+    border-radius:22px;  
+    position:relative;  
+    overflow:hidden;  
+}  
+  
+/* 底層 */  
+  
+#ticketBase{  
+    position:absolute;  
+    inset:0;  
+    display:flex;  
+    justify-content:center;  
+    align-items:center;  
+    font-size:52px;  
+    font-weight:bold;  
+    color:#111;  
+}  
+  
+/* 可撕層 */  
+  
+#ticketTop{  
+  
+    position:absolute;  
+  
+    width:92%;  
+    height:78%;  
+  
+    left:4%;  
+    top:11%;  
+  
+    background:#2f7ea7;  
+  
+    border:2px solid #111;  
+    border-radius:18px;  
+  
+    display:flex;  
+    justify-content:center;  
+    align-items:center;  
+  
+    color:white;  
+    font-size:38px;  
+    font-weight:bold;  
+  
+    cursor:pointer;  
+  
+    transition:0.8s;  
+  
+    transform-origin:left center;  
+  
+    z-index:5;  
+}  
+  
+.opened{  
+    transform:  
+        rotate(-15deg)  
+        translateX(-120%)  
+        rotateY(80deg);  
+}  
+  
+/* ================= 按鈕 ================= */  
+  
+#confirmBtn{  
+    width:100%;  
+    margin-top:18px;  
+    border:none;  
+    background:#111;  
+    color:white;  
+    padding:16px;  
+    border-radius:16px;  
+    font-size:22px;  
+    cursor:pointer;  
+}  
+  
+/* ================= 頁數 ================= */  
+  
+#pagePanel{  
+    position:fixed;  
+    top:85px;  
+    right:15px;  
+    width:260px;  
+    background:white;  
+    border-radius:18px;  
+    padding:18px;  
+    box-shadow:0 10px 30px rgba(0,0,0,0.2);  
+    display:none;  
+    z-index:1000;  
+}  
+  
+.pageRow{  
+    display:flex;  
+    justify-content:space-between;  
+    align-items:center;  
+    margin-bottom:12px;  
+}  
+  
+.pageBtn{  
+    border:none;  
+    background:#111;  
+    color:white;  
+    padding:8px 12px;  
+    border-radius:10px;  
+    cursor:pointer;  
+}  
+  
+/* ================= 設定 ================= */  
+  
+#settingPage{  
+    position:fixed;  
+    inset:0;  
+    background:#f3f3f3;  
+    z-index:2000;  
+    overflow:auto;  
+    display:none;  
+}  
+  
+.settingHeader{  
+    height:75px;  
+    background:white;  
+    display:flex;  
+    justify-content:space-between;  
+    align-items:center;  
+    padding:0 18px;  
+    box-shadow:0 2px 10px rgba(0,0,0,0.08);  
+    position:sticky;  
+    top:0;  
+}  
+  
+.settingContent{  
+    padding:20px;  
+}  
+  
+.block{  
+    background:white;  
+    border-radius:22px;  
+    padding:20px;  
+    margin-bottom:20px;  
+}  
+  
+.block h3{  
+    margin-bottom:15px;  
+}  
+  
+input{  
+    width:100%;  
+    padding:14px;  
+    border-radius:12px;  
+    border:1px solid #ccc;  
+    margin-top:8px;  
+    font-size:18px;  
+}  
+  
+.rewardRow{  
+    display:grid;  
+    grid-template-columns:1fr 2fr auto;  
+    gap:10px;  
+    margin-bottom:12px;  
+}  
+  
+.deleteBtn{  
+    border:none;  
+    background:red;  
+    color:white;  
+    border-radius:10px;  
+    width:48px;  
+    cursor:pointer;  
+}  
+  
+.bigBtn{  
+    width:100%;  
+    padding:15px;  
+    border:none;  
+    border-radius:14px;  
+    font-size:20px;  
+    cursor:pointer;  
+    margin-top:10px;  
+}  
+  
+.black{  
+    background:#111;  
+    color:white;  
+}  
+  
+.gray{  
+    background:#cfcfcf;  
+}  
+  
+/* ================= 禮炮 ================= */  
+  
+.confetti{  
+    position:fixed;  
+    width:12px;  
+    height:12px;  
+    top:-20px;  
+    animation:fall linear forwards;  
+    z-index:9999;  
+}  
+  
+@keyframes fall{  
+    to{  
+        transform:translateY(120vh) rotate(720deg);  
+    }  
+}  
+  
+</style>  </head>  <body>  <!-- 頂部 -->  <div class="topBar">  <div class="logo">  
+    貓蟲家族<br>一番賞  
+</div>  
+
+<div class="topBtns">  
+
+    <button class="topBtn" id="pageBtn">  
+        頁數  
+    </button>  
+
+    <button class="topBtn" id="resetBtn">  
+        重置  
+    </button>  
+
+    <button class="topBtn" id="settingBtn">  
+        設置  
+    </button>  
+
+</div>
+
+</div>  <!-- 主畫面 -->  <div id="main">  <div id="grid"></div>
+
+</div>  <!-- 籤紙 -->  <div id="popup">  <div id="ticketWrap">  
+
+    <div id="ticket">  
+
+        <!-- 底層 -->  
+        <div id="ticketBase"></div>  
+
+        <!-- 撕開層 -->  
+        <div id="ticketTop">  
+            點我撕開  
+        </div>  
+
+    </div>  
+
+    <button id="confirmBtn">  
+        確認  
+    </button>  
+
+</div>
+
+</div>  <!-- 頁數 -->  <div id="pagePanel">  <div id="pageList"></div>  
+
+<button class="bigBtn black" id="addPage">  
+    ＋新增頁面  
+</button>
+
+</div>  <!-- 設定 -->  <div id="settingPage">  <div class="settingHeader">  
+
+    <button class="topBtn" id="backBtn">  
+        返回  
+    </button>  
+
+    <div style="font-size:26px;font-weight:bold;">  
+        一番賞設定  
+    </div>  
+
+    <div></div>  
+
+</div>  
+
+<div class="settingContent">  
+
+    <div class="block">  
+
+        <h3>總籤數</h3>  
+
+        <input type="number"  
+               id="totalInput"  
+               min="1"  
+               value="20">  
+
+    </div>  
+
+    <div class="block">  
+
+        <h3>中獎設定</h3>  
+
+        <div id="rewardContainer"></div>  
+
+        <button class="bigBtn black"  
+                id="addReward">  
+            ＋新增中獎設定  
+        </button>  
+
+    </div>  
+
+    <button class="bigBtn black"  
+            id="saveSetting">  
+        儲存設定  
+    </button>  
+
+    <button class="bigBtn gray"  
+            id="cancelSetting">  
+        取消  
+    </button>  
+
+</div>
+
+</div>  <script>  
+  
+/* ================= 資料 ================= */  
+  
+let pages =  
+JSON.parse(localStorage.getItem("ichibanData"))  
+|| [];  
+  
+let currentPage = 0;  
+  
+if(pages.length === 0){  
+  
+    pages.push(defaultPage());  
+  
+    saveData();  
+}  
+  
+function defaultPage(){  
+  
+    return{  
+  
+        total:20,  
+  
+        opened:[],  
+  
+        rewards:{  
+            1:"A賞",  
+            4:"B賞",  
+            8:"C賞",  
+            20:"最後賞"  
+        }  
+    };  
+}  
+  
+/* ================= DOM ================= */  
+  
+const grid =  
+document.getElementById("grid");  
+  
+const popup =  
+document.getElementById("popup");  
+  
+const ticketTop =  
+document.getElementById("ticketTop");  
+  
+const ticketBase =  
+document.getElementById("ticketBase");  
+  
+const confirmBtn =  
+document.getElementById("confirmBtn");  
+  
+const pagePanel =  
+document.getElementById("pagePanel");  
+  
+const pageList =  
+document.getElementById("pageList");  
+  
+const rewardContainer =  
+document.getElementById("rewardContainer");  
+  
+let currentNumber = null;  
+  
+/* ================= 初始化 ================= */  
+  
+renderGrid();  
+renderPages();  
+  
+/* ================= 格子 ================= */  
+  
+function renderGrid(){  
+  
+    grid.innerHTML = "";  
+  
+    const data = pages[currentPage];  
+  
+    for(let i=1;i<=data.total;i++){  
+  
+        const card =  
+        document.createElement("div");  
+  
+        card.className = "card";  
+  
+        if(data.opened.includes(i)){  
+  
+            card.classList.add("used");  
+        }  
+  
+        card.innerText =  
+        String(i).padStart(3,"0");  
+  
+        card.onclick = ()=>openTicket(i);  
+  
+        grid.appendChild(card);  
+    }  
+}  
+  
+/* ================= 開啟籤紙 ================= */  
+  
+function openTicket(num){  
+  
+    const data = pages[currentPage];  
+  
+    if(data.opened.includes(num)) return;  
+  
+    currentNumber = num;  
+  
+    popup.style.display = "flex";  
+  
+    ticketTop.classList.remove("opened");  
+  
+    ticketBase.innerText =  
+        data.rewards[num] || "銘謝惠顧";  
+}  
+  
+/* ================= 撕開 ================= */  
+  
+ticketTop.onclick = ()=>{  
+  
+    ticketTop.classList.add("opened");  
+  
+    const data = pages[currentPage];  
+  
+    if(!data.opened.includes(currentNumber)){  
+  
+        data.opened.push(currentNumber);  
+  
+        saveData();  
+  
+        renderGrid();  
+  
+        if(data.rewards[currentNumber]){  
+  
+            confetti();  
+        }  
+    }  
+};  
+  
+/* ================= 確認 ================= */  
+  
+confirmBtn.onclick = ()=>{  
+  
+    popup.style.display = "none";  
+};  
+  
+/* ================= 禮炮 ================= */  
+  
+function confetti(){  
+  
+    for(let i=0;i<100;i++){  
+  
+        const c =  
+        document.createElement("div");  
+  
+        c.className = "confetti";  
+  
+        c.style.left =  
+            Math.random()*100+"vw";  
+  
+        c.style.background =  
+            `hsl(${Math.random()*360},  
+            100%,50%)`;  
+  
+        c.style.animationDuration =  
+            (Math.random()*2+2)+"s";  
+  
+        document.body.appendChild(c);  
+  
+        setTimeout(()=>{  
+  
+            c.remove();  
+  
+        },4000);  
+    }  
+}  
+  
+/* ================= 頁數 ================= */  
+  
+document.getElementById("pageBtn")  
+.onclick = ()=>{  
+  
+    pagePanel.style.display =  
+    pagePanel.style.display === "block"  
+    ? "none"  
+    : "block";  
+};  
+  
+function renderPages(){  
+  
+    pageList.innerHTML = "";  
+  
+    pages.forEach((p,index)=>{  
+  
+        const row =  
+        document.createElement("div");  
+  
+        row.className = "pageRow";  
+  
+        row.innerHTML = `  
+            <div>  
+                第 ${index+1} 頁  
+            </div>  
+  
+            <button class="pageBtn">  
+                切換  
+            </button>  
+        `;  
+  
+        row.querySelector("button")  
+        .onclick = ()=>{  
+  
+            currentPage = index;  
+  
+            renderGrid();  
+  
+            pagePanel.style.display = "none";  
+        };  
+  
+        pageList.appendChild(row);  
+    });  
+}  
+  
+/* ================= 新增頁 ================= */  
+  
+document.getElementById("addPage")  
+.onclick = ()=>{  
+  
+    pages.push(defaultPage());  
+  
+    saveData();  
+  
+    renderPages();  
+};  
+  
+/* ================= 重置 ================= */  
+  
+document.getElementById("resetBtn")  
+.onclick = ()=>{  
+  
+    if(confirm("確定重置此頁？")){  
+  
+        pages[currentPage].opened = [];  
+  
+        saveData();  
+  
+        renderGrid();  
+    }  
+};  
+  
+/* ================= 設定 ================= */  
+  
+document.getElementById("settingBtn")  
+.onclick = ()=>{  
+  
+    openSetting();  
+};  
+  
+function openSetting(){  
+  
+    const data = pages[currentPage];  
+  
+    document.getElementById("totalInput")  
+    .value = data.total;  
+  
+    rewardContainer.innerHTML = "";  
+  
+    Object.keys(data.rewards)  
+    .forEach(num=>{  
+  
+        createRewardRow(  
+            num,  
+            data.rewards[num]  
+        );  
+    });  
+  
+    settingPage.style.display = "block";  
+}  
+  
+/* ================= 新增設定 ================= */  
+  
+function createRewardRow(  
+    number="",  
+    text=""  
+){  
+  
+    const row =  
+    document.createElement("div");  
+  
+    row.className = "rewardRow";  
+  
+    row.innerHTML = `  
+        <input type="number"  
+               placeholder="編號"  
+               value="${number}">  
+  
+        <input type="text"  
+               placeholder="中獎文字"  
+               value="${text}">  
+  
+        <button class="deleteBtn">  
+            X  
+        </button>  
+    `;  
+  
+    row.querySelector(".deleteBtn")  
+    .onclick = ()=>{  
+  
+        row.remove();  
+    };  
+  
+    rewardContainer.appendChild(row);  
+}  
+  
+document.getElementById("addReward")  
+.onclick = ()=>{  
+  
+    createRewardRow();  
+};  
+  
+/* ================= 返回 ================= */  
+  
+document.getElementById("backBtn")  
+.onclick = ()=>{  
+  
+    settingPage.style.display = "none";  
+};  
+  
+document.getElementById("cancelSetting")  
+.onclick = ()=>{  
+  
+    settingPage.style.display = "none";  
+};  
+  
+/* ================= 儲存 ================= */  
+  
+document.getElementById("saveSetting")  
+.onclick = ()=>{  
+  
+    const total =  
+    parseInt(  
+        document.getElementById("totalInput")  
+        .value  
+    );  
+  
+    const rewards = {};  
+  
+    const rows =  
+    document.querySelectorAll(".rewardRow");  
+  
+    rows.forEach(row=>{  
+  
+        const num =  
+        parseInt(row.children[0].value);  
+  
+        const text =  
+        row.children[1].value.trim();  
+  
+        if(num && text){  
+  
+            rewards[num] = text;  
+        }  
+    });  
+  
+    pages[currentPage] = {  
+  
+        total,  
+        rewards,  
+        opened:[]  
+    };  
+  
+    saveData();  
+  
+    renderGrid();  
+  
+    settingPage.style.display = "none";  
+};  
+  
+/* ================= 儲存 ================= */  
+  
+function saveData(){  
+  
+    localStorage.setItem(  
+        "ichibanData",  
+        JSON.stringify(pages)  
+    );  
+}  
+  
+</script>  </body>  
+</html>
